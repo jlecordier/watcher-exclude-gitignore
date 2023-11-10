@@ -1,6 +1,6 @@
 # watcher-exclude-gitignore
 
-Generate VSCode's "files.watcherExclude" list of path from .gitignore scattered in your project
+Generate VSCode's `files.watcherExclude` list of path from `.gitignore` files scattered in your project
 
 ## Run
 
