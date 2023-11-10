@@ -1,10 +1,11 @@
+import { GitignoreLine, createGitignoreLine } from './GitignoreLine';
 import { Path } from './Path';
 
 export class Gitignore {
     directory: Path;
-    lines: string[];
+    lines: GitignoreLine[];
 
-    constructor(directory: Path, lines: string[]) {
+    constructor(directory: Path, lines: GitignoreLine[]) {
         this.directory = directory;
         this.lines = lines;
     }
@@ -13,15 +14,8 @@ export class Gitignore {
         return this.directory;
     }
 
-    getLines(): string[] {
+    getLines(): GitignoreLine[] {
         return this.lines;
-    }
-
-    getPathes(): Path[] {
-        return this.getLines()
-            .map(l => l.trim())
-            .filter(l => !!l && !l.startsWith('#'))
-            .map(line => Path.of(`${this.getDirectory()}/${line}`));
     }
 }
 
@@ -32,5 +26,11 @@ export function createGitignore({
     directory?: string;
     lines?: string[];
 } = {}): Gitignore {
-    return new Gitignore(Path.of(directory), lines);
+    return new Gitignore(
+        Path.of(directory),
+        lines
+            .map(l => l.trim())
+            .filter(l => !!l && !l.startsWith('#'))
+            .map(line => createGitignoreLine({ directory, line })),
+    );
 }

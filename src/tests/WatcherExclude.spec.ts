@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { createFolder } from '../application/Folder';
 import { createGitignore } from '../application/Gitignore';
+import { createGitignoreLine } from '../application/GitignoreLine';
 import { Path } from '../application/Path';
 import {
     getExcludeLine,
@@ -19,15 +20,30 @@ import { createStubFileSystem } from '../application/filesystem/StubFileSystem';
 describe('WatcherExclude', () => {
     describe('getExcludeLine', () => {
         describe('given a file with no depth', () => {
-            it('should return a line ready to be pasted', () => {
-                const actual = getExcludeLine(Path.of('./filename.ext'));
-                const expected = '        "./filename.ext": true,';
-                expect(actual).toBe(expected);
+            describe('when the line should be ignored', () => {
+                it('should return a line ready to be pasted', () => {
+                    const actual = getExcludeLine(
+                        createGitignoreLine({ line: 'filename.ext' }),
+                    );
+                    const expected = '        "./filename.ext": true,';
+                    expect(actual).toBe(expected);
+                });
+            });
+            describe('when the line should not be ignored', () => {
+                it('should return a line ready to be pasted', () => {
+                    const actual = getExcludeLine(
+                        createGitignoreLine({ line: '!filename.ext' }),
+                    );
+                    const expected = '        "./filename.ext": false,';
+                    expect(actual).toBe(expected);
+                });
             });
         });
         describe('given a file with a depth of one', () => {
             it('should return a line ready to be pasted', () => {
-                const actual = getExcludeLine(Path.of('./folder/filename.ext'));
+                const actual = getExcludeLine(
+                    createGitignoreLine({ line: 'folder/filename.ext' }),
+                );
                 const expected = '        "./folder/filename.ext": true,';
                 expect(actual).toBe(expected);
             });
@@ -35,7 +51,7 @@ describe('WatcherExclude', () => {
         describe('given a file with a depth of two', () => {
             it('should return a line ready to be pasted', () => {
                 const actual = getExcludeLine(
-                    Path.of('./my/path/filename.ext'),
+                    createGitignoreLine({ line: 'my/path/filename.ext' }),
                 );
                 const expected = '        "./my/path/filename.ext": true,';
                 expect(actual).toBe(expected);
@@ -43,35 +59,45 @@ describe('WatcherExclude', () => {
         });
         describe('given a folder with no depth', () => {
             it('should return a line ready to be pasted', () => {
-                const actual = getExcludeLine(Path.of('./folder'));
+                const actual = getExcludeLine(
+                    createGitignoreLine({ line: 'folder' }),
+                );
                 const expected = '        "./folder": true,';
                 expect(actual).toBe(expected);
             });
         });
         describe('given a folder with a depth of one', () => {
             it('should return a line ready to be pasted', () => {
-                const actual = getExcludeLine(Path.of('./my/folder'));
+                const actual = getExcludeLine(
+                    createGitignoreLine({ line: 'my/folder' }),
+                );
                 const expected = '        "./my/folder": true,';
                 expect(actual).toBe(expected);
             });
         });
         describe('given a folder with a depth of two', () => {
             it('should return a line ready to be pasted', () => {
-                const actual = getExcludeLine(Path.of('./my/folder/path'));
+                const actual = getExcludeLine(
+                    createGitignoreLine({ line: 'my/folder/path' }),
+                );
                 const expected = '        "./my/folder/path": true,';
                 expect(actual).toBe(expected);
             });
         });
         describe('given a ** glob with a depth of one', () => {
             it('should return a line ready to be pasted', () => {
-                const actual = getExcludeLine(Path.of('./glob/**'));
+                const actual = getExcludeLine(
+                    createGitignoreLine({ line: 'glob/**' }),
+                );
                 const expected = '        "./glob/**": true,';
                 expect(actual).toBe(expected);
             });
         });
         describe('given a *.ext glob with no depth', () => {
             it('should return a line ready to be pasted', () => {
-                const actual = getExcludeLine(Path.of('./*.ext'));
+                const actual = getExcludeLine(
+                    createGitignoreLine({ line: '*.ext' }),
+                );
                 const expected = '        "./*.ext": true,';
                 expect(actual).toBe(expected);
             });
@@ -81,15 +107,15 @@ describe('WatcherExclude', () => {
         describe('given a list of lines', () => {
             it('should return a list of lines ready to be pasted', () => {
                 const actual = getExcludesLines([
-                    Path.of('./filename.ext'),
-                    Path.of('./folder/filename.ext'),
-                    Path.of('./folder'),
-                    Path.of('./glob/**'),
-                    Path.of('./*.ext'),
+                    createGitignoreLine({ line: '!filename.ext' }),
+                    createGitignoreLine({ line: '!folder/filename.ext' }),
+                    createGitignoreLine({ line: 'folder' }),
+                    createGitignoreLine({ line: 'glob/**' }),
+                    createGitignoreLine({ line: '*.ext' }),
                 ]);
                 const expected = [
-                    '        "./filename.ext": true,',
-                    '        "./folder/filename.ext": true,',
+                    '        "./filename.ext": false,',
+                    '        "./folder/filename.ext": false,',
                     '        "./folder": true,',
                     '        "./glob/**": true,',
                     '        "./*.ext": true,',
@@ -105,9 +131,9 @@ describe('WatcherExclude', () => {
                     const gitignore = createGitignore({
                         directory: '.',
                         lines: [
-                            'filename.ext',
+                            '!filename.ext',
                             '',
-                            'folder/filename.ext',
+                            '!folder/filename.ext',
                             ' ',
                             'folder',
                             '# comment',
@@ -117,8 +143,8 @@ describe('WatcherExclude', () => {
                     });
                     const actual = getExcludesLinesFromGitignore(gitignore);
                     const expected = [
-                        '        "./filename.ext": true,',
-                        '        "./folder/filename.ext": true,',
+                        '        "./filename.ext": false,',
+                        '        "./folder/filename.ext": false,',
                         '        "./folder": true,',
                         '        "./glob/**": true,',
                         '        "./*.ext": true,',
@@ -131,9 +157,9 @@ describe('WatcherExclude', () => {
                     const gitignore = createGitignore({
                         directory: './my/path',
                         lines: [
-                            'filename.ext',
+                            '!filename.ext',
                             '',
-                            'folder/filename.ext',
+                            '!folder/filename.ext',
                             ' ',
                             'folder',
                             '# comment',
@@ -143,8 +169,8 @@ describe('WatcherExclude', () => {
                     });
                     const actual = getExcludesLinesFromGitignore(gitignore);
                     const expected = [
-                        '        "./my/path/filename.ext": true,',
-                        '        "./my/path/folder/filename.ext": true,',
+                        '        "./my/path/filename.ext": false,',
+                        '        "./my/path/folder/filename.ext": false,',
                         '        "./my/path/folder": true,',
                         '        "./my/path/glob/**": true,',
                         '        "./my/path/*.ext": true,',
@@ -172,9 +198,9 @@ describe('WatcherExclude', () => {
                         [
                             './.gitignore',
                             [
-                                'filename.ext',
+                                '!filename.ext',
                                 '',
-                                'folder/filename.ext',
+                                '!folder/filename.ext',
                                 ' ',
                                 'folder',
                                 '# comment',
@@ -191,8 +217,8 @@ describe('WatcherExclude', () => {
                 });
                 const actual = await getExcludesLinesFromFolder(folder);
                 const expected = [
-                    '        "./filename.ext": true,',
-                    '        "./folder/filename.ext": true,',
+                    '        "./filename.ext": false,',
+                    '        "./folder/filename.ext": false,',
                     '        "./folder": true,',
                     '        "./glob/**": true,',
                     '        "./*.ext": true,',
@@ -207,9 +233,9 @@ describe('WatcherExclude', () => {
                         [
                             './inner/.gitignore',
                             [
-                                'filename.ext',
+                                '!filename.ext',
                                 '',
-                                'folder/filename.ext',
+                                '!folder/filename.ext',
                                 ' ',
                                 'folder',
                                 '# comment',
@@ -234,8 +260,8 @@ describe('WatcherExclude', () => {
                 });
                 const actual = await getExcludesLinesFromFolder(rootFolder);
                 const expected = [
-                    '        "./inner/filename.ext": true,',
-                    '        "./inner/folder/filename.ext": true,',
+                    '        "./inner/filename.ext": false,',
+                    '        "./inner/folder/filename.ext": false,',
                     '        "./inner/folder": true,',
                     '        "./inner/glob/**": true,',
                     '        "./inner/*.ext": true,',
@@ -250,9 +276,9 @@ describe('WatcherExclude', () => {
                         [
                             './my/path/.gitignore',
                             [
-                                'filename.ext',
+                                '!filename.ext',
                                 '',
-                                'folder/filename.ext',
+                                '!folder/filename.ext',
                                 ' ',
                                 'folder',
                                 '# comment',
@@ -283,8 +309,8 @@ describe('WatcherExclude', () => {
                 });
                 const actual = await getExcludesLinesFromFolder(rootFolder);
                 const expected = [
-                    '        "./my/path/filename.ext": true,',
-                    '        "./my/path/folder/filename.ext": true,',
+                    '        "./my/path/filename.ext": false,',
+                    '        "./my/path/folder/filename.ext": false,',
                     '        "./my/path/folder": true,',
                     '        "./my/path/glob/**": true,',
                     '        "./my/path/*.ext": true,',
@@ -298,7 +324,7 @@ describe('WatcherExclude', () => {
                     files: new Map<string, string[]>([
                         [
                             './.gitignore',
-                            ['filename.ext', 'folder/filename.ext'],
+                            ['!filename.ext', '!folder/filename.ext'],
                         ],
                         ['./my/.gitignore', ['folder']],
                         ['./my/path/.gitignore', ['glob/**', '*.ext']],
@@ -327,8 +353,8 @@ describe('WatcherExclude', () => {
                 });
                 const actual = await getExcludesLinesFromFolder(rootFolder);
                 const expected = [
-                    '        "./filename.ext": true,',
-                    '        "./folder/filename.ext": true,',
+                    '        "./filename.ext": false,',
+                    '        "./folder/filename.ext": false,',
                     '        "./my/folder": true,',
                     '        "./my/path/glob/**": true,',
                     '        "./my/path/*.ext": true,',
@@ -360,8 +386,8 @@ describe('WatcherExclude', () => {
                         [
                             './.gitignore',
                             [
-                                'filename.ext',
-                                'folder/filename.ext',
+                                '!filename.ext',
+                                '!folder/filename.ext',
                                 'folder',
                                 'glob/**',
                                 '*.ext',
@@ -382,8 +408,8 @@ describe('WatcherExclude', () => {
                     fileSystem,
                 );
                 const expected = [
-                    '        "./filename.ext": true,',
-                    '        "./folder/filename.ext": true,',
+                    '        "./filename.ext": false,',
+                    '        "./folder/filename.ext": false,',
                     '        "./folder": true,',
                     '        "./glob/**": true,',
                     '        "./*.ext": true,',
@@ -398,8 +424,8 @@ describe('WatcherExclude', () => {
                         [
                             './inner/.gitignore',
                             [
-                                'filename.ext',
-                                'folder/filename.ext',
+                                '!filename.ext',
+                                '!folder/filename.ext',
                                 'folder',
                                 'glob/**',
                                 '*.ext',
@@ -426,8 +452,8 @@ describe('WatcherExclude', () => {
                     fileSystem,
                 );
                 const expected = [
-                    '        "./inner/filename.ext": true,',
-                    '        "./inner/folder/filename.ext": true,',
+                    '        "./inner/filename.ext": false,',
+                    '        "./inner/folder/filename.ext": false,',
                     '        "./inner/folder": true,',
                     '        "./inner/glob/**": true,',
                     '        "./inner/*.ext": true,',
@@ -442,8 +468,8 @@ describe('WatcherExclude', () => {
                         [
                             './my/path/.gitignore',
                             [
-                                'filename.ext',
-                                'folder/filename.ext',
+                                '!filename.ext',
+                                '!folder/filename.ext',
                                 'folder',
                                 'glob/**',
                                 '*.ext',
@@ -476,8 +502,8 @@ describe('WatcherExclude', () => {
                     fileSystem,
                 );
                 const expected = [
-                    '        "./my/path/filename.ext": true,',
-                    '        "./my/path/folder/filename.ext": true,',
+                    '        "./my/path/filename.ext": false,',
+                    '        "./my/path/folder/filename.ext": false,',
                     '        "./my/path/folder": true,',
                     '        "./my/path/glob/**": true,',
                     '        "./my/path/*.ext": true,',
@@ -491,7 +517,7 @@ describe('WatcherExclude', () => {
                     files: new Map<string, string[]>([
                         [
                             './.gitignore',
-                            ['filename.ext', 'folder/filename.ext'],
+                            ['!filename.ext', '!folder/filename.ext'],
                         ],
                         ['./my/.gitignore', ['folder']],
                         ['./my/path/.gitignore', ['glob/**', '*.ext']],
@@ -524,8 +550,8 @@ describe('WatcherExclude', () => {
                     fileSystem,
                 );
                 const expected = [
-                    '        "./filename.ext": true,',
-                    '        "./folder/filename.ext": true,',
+                    '        "./filename.ext": false,',
+                    '        "./folder/filename.ext": false,',
                     '        "./my/folder": true,',
                     '        "./my/path/glob/**": true,',
                     '        "./my/path/*.ext": true,',
@@ -541,7 +567,7 @@ describe('WatcherExclude', () => {
                     files: new Map<string, string[]>([
                         [
                             './.gitignore',
-                            ['filename.ext', 'folder/filename.ext'],
+                            ['!filename.ext', '!folder/filename.ext'],
                         ],
                         ['./my/.gitignore', ['folder']],
                         ['./my/path/.gitignore', ['glob/**', '*.ext']],
@@ -576,8 +602,8 @@ describe('WatcherExclude', () => {
                 const expected = `
 {
     "files.watcherExclude": {
-        "./filename.ext": true,
-        "./folder/filename.ext": true,
+        "./filename.ext": false,
+        "./folder/filename.ext": false,
         "./my/folder": true,
         "./my/path/glob/**": true,
         "./my/path/*.ext": true,

@@ -1,18 +1,21 @@
 import { Folder, createFolder } from './Folder';
 import { Gitignore } from './Gitignore';
+import { GitignoreLine } from './GitignoreLine';
 import { Path } from './Path';
 import { FileSystem } from './filesystem/FileSystem';
 
-export function getExcludeLine(path: Path): string {
-    return `        "${path}": true,`;
+export function getExcludeLine(line: GitignoreLine): string {
+    return `        "${line.getPath().value}": ${line
+        .shouldIgnore()
+        .toString()},`;
 }
 
-export function getExcludesLines(pathes: Path[]): string[] {
-    return pathes.map(getExcludeLine);
+export function getExcludesLines(line: GitignoreLine[]): string[] {
+    return line.map(getExcludeLine);
 }
 
 export function getExcludesLinesFromGitignore(gitignore: Gitignore): string[] {
-    return getExcludesLines(gitignore.getPathes());
+    return getExcludesLines(gitignore.getLines());
 }
 
 export async function getExcludesLinesFromFolder(

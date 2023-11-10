@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { createGitignore } from '../application/Gitignore';
-import { Path } from '../application/Path';
+import { createGitignoreLine } from '../application/GitignoreLine';
 
 describe('Gitignore', () => {
     it('getPathes', () => {
@@ -17,13 +17,13 @@ describe('Gitignore', () => {
                 '*.ext',
             ],
         });
-        const actual = gitignore.getPathes();
+        const actual = gitignore.getLines();
         const expected = [
-            Path.of('./filename.ext'),
-            Path.of('./folder/filename.ext'),
-            Path.of('./folder'),
-            Path.of('./glob/**'),
-            Path.of('./*.ext'),
+            createGitignoreLine({ line: 'filename.ext' }),
+            createGitignoreLine({ line: 'folder/filename.ext' }),
+            createGitignoreLine({ line: 'folder' }),
+            createGitignoreLine({ line: 'glob/**' }),
+            createGitignoreLine({ line: '*.ext' }),
         ];
         expect(actual).toEqual(expected);
     });
