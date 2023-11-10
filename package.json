@@ -1,0 +1,42 @@
+{
+  "name": "watcher-exclude-gitignore",
+  "version": "1.0.0",
+  "description": "Generate VSCode's \"files.watcherExclude\" list of path from .gitignore scattered in your project",
+  "keywords": [
+    "vscode",
+    "watcherExclude",
+    ".gitignore"
+  ],
+  "author": "jlecordier",
+  "license": "Unlicense",
+  "homepage": "https://github.com/jlecordier/watcher-exclude-gitignore#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jlecordier/watcher-exclude-gitignore.git"
+  },
+  "bugs": {
+    "url": "https://github.com/jlecordier/watcher-exclude-gitignore/issues"
+  },
+  "type": "module",
+  "main": "./src/WatcherExclude.ts",
+  "bin": "./dist/index.js",
+  "scripts": {
+    "start": "tsx ./src/apps/index.ts",
+    "build": "tsc --noEmit && esbuild ./src/apps/index.ts --bundle --outfile=./dist/index.js --platform=node --target=node12 --format=esm --sourcemap --minify",
+    "test": "vitest",
+    "lint": "eslint '{src,tests}/**/*.{ts,tsx}'",
+    "format": "prettier --write '{src,tests}/**/*.{ts,tsx}'"
+  },
+  "devDependencies": {
+    "@types/node": "^20.9.0",
+    "@typescript-eslint/eslint-plugin": "^6.10.0",
+    "@typescript-eslint/parser": "^6.10.0",
+    "esbuild": "^0.19.5",
+    "eslint": "^8.53.0",
+    "eslint-config-prettier": "^9.0.0",
+    "eslint-plugin-prettier": "^5.0.1",
+    "prettier": "^3.0.3",
+    "typescript": "^5.2.2",
+    "vitest": "^0.34.6"
+  }
+}
