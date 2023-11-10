@@ -12,7 +12,7 @@
   "homepage": "https://github.com/jlecordier/watcher-exclude-gitignore#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/jlecordier/watcher-exclude-gitignore.git"
+    "url": "git://github.com/jlecordier/watcher-exclude-gitignore.git"
   },
   "bugs": {
     "url": "https://github.com/jlecordier/watcher-exclude-gitignore/issues"
@@ -27,6 +27,9 @@
     "lint": "eslint '{src,tests}/**/*.{ts,tsx}'",
     "format": "prettier --write '{src,tests}/**/*.{ts,tsx}'"
   },
+  "files": [
+    "./dist/index.js"
+  ],
   "devDependencies": {
     "@types/node": "^20.9.0",
     "@typescript-eslint/eslint-plugin": "^6.10.0",
@@ -38,5 +41,8 @@
     "prettier": "^3.0.3",
     "typescript": "^5.2.2",
     "vitest": "^0.34.6"
+  },
+  "engines": {
+    "node": ">=20"
   }
 }
